@@ -13,7 +13,9 @@ services:
   sentry_redis:
     hostname: sentry_redis
     image: redis
-
+    networks:
+      - back_sentry
+      
   sentry_postgres:
     hostname: sentry_postgres
     image: postgres
