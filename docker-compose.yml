@@ -3,55 +3,80 @@ version: '2'
 volumes:
    pgdb:
 
+networks:
+  frontend:
+    external: true
+  back_sentry:
+
+
 services:
-  redis:
+  sentry_redis:
+    hostname: sentry_redis
     image: redis
 
-  postgres:
+  sentry_postgres:
+    hostname: sentry_postgres
     image: postgres
     environment:
-      POSTGRES_USER: sentry
-      POSTGRES_PASSWORD: sentry
-      POSTGRES_DB: sentry
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
     volumes:
      - pgdb:/var/lib/postgresql/data
+    networks:
+      - back_sentry
 
   sentry:
     image: sentry
     links:
-     - redis
-     - postgres
-    ports:
-     - 9000:9000
+     - sentry_redis
+     - sentry_postgres
+    # ports:
+     # - 9000:9000
     environment:
-      SENTRY_SECRET_KEY: '!!!SECRET!!!'
-      SENTRY_POSTGRES_HOST: postgres
-      SENTRY_DB_USER: sentry
-      SENTRY_DB_PASSWORD: sentry
-      SENTRY_REDIS_HOST: redis
+      SENTRY_SECRET_KEY: $SENTRY_SECRET_KEY
+      SENTRY_POSTGRES_HOST: sentry_postgres
+      SENTRY_DB_USER: $POSTGRES_USER
+      SENTRY_DB_PASSWORD: $POSTGRES_PASSWORD
+      SENTRY_REDIS_HOST: sentry_redis
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=frontend
+
+      - traefik.http.routers.sentry.tls.certresolver=myresolver
+      - traefik.http.routers.sentry.rule=Host(`$DOMAIN`)
+      - traefik.http.services.sentry.loadbalancer.server.port=9000
+
+    networks:
+      - back_sentry
+      - frontend
 
   cron:
     image: sentry
     links:
-     - redis
-     - postgres
+     - sentry_redis
+     - sentry_postgres
     command: "sentry run cron"
     environment:
-      SENTRY_SECRET_KEY: '!!!SECRET!!!'
-      SENTRY_POSTGRES_HOST: postgres
-      SENTRY_DB_USER: sentry
-      SENTRY_DB_PASSWORD: sentry
-      SENTRY_REDIS_HOST: redis
+      SENTRY_SECRET_KEY: $SENTRY_SECRET_KEY
+      SENTRY_POSTGRES_HOST: sentry_postgres
+      SENTRY_DB_USER: $POSTGRES_USER
+      SENTRY_DB_PASSWORD: $POSTGRES_PASSWORD
+      SENTRY_REDIS_HOST: sentry_redis
+    networks:
+      - back_sentry
 
   worker:
     image: sentry
     links:
-     - redis
-     - postgres
+     - sentry_redis
+     - sentry_postgres
     command: "sentry run worker"
     environment:
-      SENTRY_SECRET_KEY: '!!!SECRET!!!'
-      SENTRY_POSTGRES_HOST: postgres
-      SENTRY_DB_USER: sentry
-      SENTRY_DB_PASSWORD: sentry
-      SENTRY_REDIS_HOST: redis
+      SENTRY_SECRET_KEY: $SENTRY_SECRET_KEY
+      SENTRY_POSTGRES_HOST: sentry_postgres
+      SENTRY_DB_USER: $POSTGRES_USER
+      SENTRY_DB_PASSWORD: $POSTGRES_PASSWORD
+      SENTRY_REDIS_HOST: sentry_redis
+    networks:
+      - back_sentry
