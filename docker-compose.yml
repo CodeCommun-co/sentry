@@ -53,34 +53,34 @@ services:
       - back_sentry
       - frontend
 
-    command: sentry upgrade
+    # command: sentry upgrade
 
-  # cron:
-  #   image: sentry
-  #   links:
-  #    - sentry_redis
-  #    - sentry_postgres
-  #   command: "sentry run cron"
-  #   environment:
-  #     SENTRY_SECRET_KEY: $SENTRY_SECRET_KEY
-  #     SENTRY_POSTGRES_HOST: sentry_postgres
-  #     SENTRY_DB_USER: $POSTGRES_USER
-  #     SENTRY_DB_PASSWORD: $POSTGRES_PASSWORD
-  #     SENTRY_REDIS_HOST: sentry_redis
-  #   networks:
-  #     - back_sentry
+  cron:
+    image: sentry
+    links:
+     - sentry_redis
+     - sentry_postgres
+    command: "sentry run cron"
+    environment:
+      SENTRY_SECRET_KEY: $SENTRY_SECRET_KEY
+      SENTRY_POSTGRES_HOST: sentry_postgres
+      SENTRY_DB_USER: $POSTGRES_USER
+      SENTRY_DB_PASSWORD: $POSTGRES_PASSWORD
+      SENTRY_REDIS_HOST: sentry_redis
+    networks:
+      - back_sentry
 
-  # worker:
-  #   image: sentry
-  #   links:
-  #    - sentry_redis
-  #    - sentry_postgres
-  #   command: "sentry run worker"
-  #   environment:
-  #     SENTRY_SECRET_KEY: $SENTRY_SECRET_KEY
-  #     SENTRY_POSTGRES_HOST: sentry_postgres
-  #     SENTRY_DB_USER: $POSTGRES_USER
-  #     SENTRY_DB_PASSWORD: $POSTGRES_PASSWORD
-  #     SENTRY_REDIS_HOST: sentry_redis
-  #   networks:
-  #     - back_sentry
+  worker:
+    image: sentry
+    links:
+     - sentry_redis
+     - sentry_postgres
+    command: "sentry run worker"
+    environment:
+      SENTRY_SECRET_KEY: $SENTRY_SECRET_KEY
+      SENTRY_POSTGRES_HOST: sentry_postgres
+      SENTRY_DB_USER: $POSTGRES_USER
+      SENTRY_DB_PASSWORD: $POSTGRES_PASSWORD
+      SENTRY_REDIS_HOST: sentry_redis
+    networks:
+      - back_sentry
